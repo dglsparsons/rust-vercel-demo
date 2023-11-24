@@ -1,0 +1,29 @@
+name: main
+on:
+  push:
+    branches:
+      - main
+env:
+  VERCEL_ORG_ID: 4mJVQroRIfJiOndbCTzUUM12
+  VERCEL_PROJECT_ID: prj_ofJFuObCB5Q0rGBiPI9HJxnB1iAb
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Rust
+        uses: moonrepo/setup-rust@v1
+        with:
+          targets: 'x86_64-unknown-linux-musl'
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+      - name: Write cargo config (forces a specific target)
+        run: mkdir .cargo && printf "[build]\ntarget = \"x86_64-unknown-linux-musl\"\n" > .cargo/config.toml
+      - name: Pull Vercel Information
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build
+        run: vc build --prod --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Deploy
+        run: vc deploy --prod --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
